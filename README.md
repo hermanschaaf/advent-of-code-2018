@@ -1,4 +1,4 @@
-# advent-of-code-2018
+# Advent of Code 2018
 
 Advent of code 2018 solutions in Nim. I may also add some Python solutions for comparison.
 
