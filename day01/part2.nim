@@ -1,11 +1,12 @@
 import strutils
 import sets
 import math
+import intsets
 
 var
   val: int
   freqs: seq[int]
-  prev = initSet[int](nextPowerOfTwo(10000000))
+  prev = initIntSet()
 
 for line in "day1.in".lines:
   let f = parseInt(line)
