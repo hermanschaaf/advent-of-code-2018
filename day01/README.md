@@ -28,7 +28,7 @@ The problem turned out to be with the initialization of the integer HashSet. Whe
 prev = initSet[int](nextPowerOfTwo(10000000))
 ```
 
-the time compared better with that of Python:
+the time now compared better with that of Python, but still not great (109ms vs Python's 4ms):
 
 ```
 time nimc part2.nim 
@@ -39,4 +39,4 @@ user    0m0.388s
 sys 0m0.109s
 ```
 
-The HashSet implementation that comes with Nim must be extremely inefficient at increasing the bounds.
+The HashSet implementation that comes with Nim must be extremely inefficient at increasing the bounds. It must do so in powers of two however, as the initialization function expects this. Quite strange...
