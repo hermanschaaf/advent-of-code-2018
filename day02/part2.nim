@@ -10,13 +10,13 @@ proc diff_by_one(w: string, w2: string): string =
       pos = i
   if d != 1:
     return ""
-  let a = w[0 .. pos-1]
-  let b = w[pos+1 .. w.len-1]
+  let a = w[0 .. <pos]
+  let b = w[pos+1 .. <w.len]
   return join(@[a, b], "")
 
 proc solve(words: seq[string]): string =
   for i, w in words.pairs:
-    for u in i .. words.len-1:
+    for u in i .. <words.len:
       var w2 = words[u]
       var ans = diff_by_one(w, w2)
       if ans != "":
