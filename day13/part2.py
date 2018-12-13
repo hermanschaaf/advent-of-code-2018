@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-fp = open('test3.txt', 'r')
+fp = open('input.txt', 'r')
 size = 0
 
 
@@ -36,15 +36,6 @@ for row, line in enumerate(fp):
     carts += c
 
 
-def print_carts():
-    for row, line in enumerate(grid):
-        line = line[:]
-        for cart in carts:
-            if cart.row == row:
-                line[cart.col] = cart.dir
-        print("".join(line))
-
-
 def turn_left(d):
     if d == left:
         return down
@@ -60,13 +51,11 @@ def turn_right(d):
     return turn_left(turn_left(turn_left(d)))
 
 
-steps = 0
 while True:
     carts.sort(key=lambda a: (a.row, a.col))
-    seen = {}
-    print_carts()
+    seen = dict((P(c.row, c.col), c) for c in carts)
+    # print_carts()
     for c in carts:
-
         if grid[c.row][c.col] == "/":
             if c.dir == left:
                 c.dir = down
@@ -93,23 +82,21 @@ while True:
             elif c.count % 3 == 2:
                 c.dir = turn_right(c.dir)
             c.count += 1
+
+        del seen[P(c.row, c.col)]
+
         d = dirs[c.dir]
         nxt = P(c.row + d.row, c.col + d.col)
         c.row = nxt.row
         c.col = nxt.col
+
         if nxt not in seen:
             seen[nxt] = c
         else:
-            print("Collision at", nxt)
             c.dead = True
             seen[nxt].dead = True
-            del seen[nxt]
 
     carts = [c for c in carts if not c.dead]
-    if len(carts) <= 1:
+    if len(carts) == 1:
         print("{},{}".format(carts[0].col, carts[0].row))
         exit(0)
-
-    steps += 1
-    if steps > 100:
-        break
