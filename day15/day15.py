@@ -206,8 +206,10 @@ if __name__ == '__main__':
     print("Part 1:", steps, score, steps * score)
 
     # part 2
-    ap = 4
-    while True:
+    mn = 4
+    mx = 300
+    while mx >= mn:
+        ap = mn + (mx-mn) // 2
         print("Attack power", ap)
         b = Battlefield(lines, elf_attack_power=ap)
         steps = 0
@@ -220,7 +222,9 @@ if __name__ == '__main__':
             steps += 1
         score = b.score()
         if b.elf_losses() == 0:
-            break
-        ap += 1
+            mx = ap - 1
+        else:
+            mn = ap + 1
+
     print("Final attack power =", ap)
     print("Part 2:", steps, score, steps * score)
