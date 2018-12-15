@@ -101,7 +101,10 @@ class Battlefield(object):
         return False
 
     def _reading_order(self, unit):
-        return unit.position.row * self.num_cols + unit.position.col
+        return self._reading_order_position(unit.position)
+
+    def _reading_order_position(self, position):
+        return position.row * self.num_cols + position.col
 
     def _is_in_range(self, unit):
         for enemy in self._iter_enemies(unit):
@@ -110,22 +113,14 @@ class Battlefield(object):
         return False
 
     def _move_with_unit(self, unit):
-        best_dist, best_next_pos = None, None
-        for enemy in self._iter_enemies(unit):
-            for open_space in self._iter_open_spaces(enemy):
-                dist, next_pos = self.find_path(unit.position, open_space)
-                if dist is None:
-                    continue
+        enemy_kind = "E" if unit.kind == "G" else "G"
+        dist, next_pos = self.find_path(unit.position, enemy_kind)
 
-                if best_dist is None or dist < best_dist:
-                    best_dist = dist
-                    best_next_pos = next_pos
-
-        if best_dist is not None:
-            assert self.is_open(best_next_pos)
+        if dist is not None:
+            assert self.is_open(next_pos)
             self._grid[unit.position.row][unit.position.col] = '.'
-            self._grid[best_next_pos.row][best_next_pos.col] = unit.kind
-            unit.position = best_next_pos
+            self._grid[next_pos.row][next_pos.col] = unit.kind
+            unit.position = next_pos
 
     def _attack_with_unit(self, unit):
         best_enemy = None
@@ -146,33 +141,44 @@ class Battlefield(object):
             if u.kind != unit.kind and not u.is_dead():
                 yield u
 
-    def _iter_open_spaces(self, unit):
-        for d in Battlefield.directions:
-            p = unit.position + d
-            if self.is_open(p):
-                yield p
-
     def is_open(self, p):
         if 0 <= p.row < self.num_rows and 0 <= p.col < self.num_cols:
             return self._grid[p.row][p.col] == '.'
         return False
 
-    def find_path(self, p1, p2):
+    def is_unit(self, p, kind=None):
+        if 0 <= p.row < self.num_rows and 0 <= p.col < self.num_cols:
+            if kind is None:
+                return self._grid[p.row][p.col] in "EG"
+            else:
+                return self._grid[p.row][p.col] == kind
+        return False
+
+    def find_path(self, p1, kind):
         q = deque([(p1+d, 1) for d in Battlefield.directions if self.is_open(p1+d)])
         seen = set()
+        nodes = []
         while len(q) > 0:
             p, d = q.popleft()
-            if p == p2:
+            if self.is_unit(p, kind):
+                if len(nodes) > 0 and nodes[-1][0] < d:
+                    break
+                e = p.prev
                 while p.prev is not None:
                     p = p.prev
-                return d, p
-            for dr in Battlefield.directions:
-                np = p + dr
-                np.prev = p
-                if np not in seen and self.is_open(np):
-                    q.append((np, d + 1))
-                    seen.add(np)
-        return None, None
+                nodes.append((d, p, e))
+            if self.is_open(p):
+                for dr in Battlefield.directions:
+                    np = p + dr
+                    np.prev = p
+                    if np not in seen and (self.is_open(np) or self.is_unit(np)):
+                        q.append((np, d + 1))
+                        seen.add(np)
+        if len(nodes) == 0:
+            return None, None
+
+        nodes.sort(key=lambda p: self._reading_order_position(p[2]))
+        return (nodes[0][0], nodes[0][1])
 
     def is_done(self):
         return self._is_done
@@ -207,7 +213,7 @@ if __name__ == '__main__':
 
     # part 2
     mn = 4
-    mx = 300
+    mx = 200
     while mx >= mn:
         ap = mn + (mx-mn) // 2
         print("Attack power", ap)
